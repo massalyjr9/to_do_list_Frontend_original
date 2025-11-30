@@ -147,7 +147,7 @@ export default function HomePage() {
         <input
           className="border p-2"
           type="date"
-          placeholder="Date de début"
+          placeholder="Date de debut"
           value={newTask.startDate || ''}
           min={today}
           onChange={e => handleStartDateChange(e.target.value)}

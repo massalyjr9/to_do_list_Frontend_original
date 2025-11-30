@@ -3,18 +3,41 @@
 import { useEffect, useState } from 'react';
 import { Task, TaskStatus } from '../types/task';
 import { fetchTasks, createTask, updateTask, deleteTask } from '../lib/api';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const statuses: TaskStatus[] = ['to do', 'in progress', 'done'];
+
+function toYMD(date?: Date) {
+  if (!date) return undefined;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function fromYMD(s?: string) {
+  if (!s) return undefined;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
+// Format YYYY-MM-DD -> DD-MM-YYYY
+function formatDMY(s?: string) {
+  if (!s) return '';
+  const [y, m, d] = s.split('-');
+  if (!y || !m || !d) return s;
+  return `${d}-${m}-${y}`;
+}
 
 export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<Partial<Task>>({ title: '', status: 'to do' });
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  // Date du jour au format YYYY-MM-DD pour bloquer les dates passées
   const today = new Date().toISOString().split('T')[0];
+  const todayDate = new Date();
 
-  // Fonction utilitaire pour calculer la durée en jours (end - start)
   const computeDurationDays = (start?: string, end?: string): number | undefined => {
     if (!start || !end) return undefined;
     const startDate = new Date(start);
@@ -37,12 +60,9 @@ export default function HomePage() {
 
   const handleSave = async () => {
     if (!newTask.title) return;
-
-    // recalculer la durée avant envoi (au cas où)
     const duration =
       computeDurationDays(newTask.startDate, newTask.endDate) ?? newTask.duration;
     const payload = { ...newTask, duration };
-
     if (editingTaskId) {
       const updated = await updateTask(editingTaskId, payload);
       setTasks(prev => prev.map(t => (t._id === updated._id ? updated : t)));
@@ -50,7 +70,6 @@ export default function HomePage() {
       const created = await createTask(payload);
       setTasks(prev => [...prev, created]);
     }
-
     setNewTask({ title: '', status: 'to do' });
     setEditingTaskId(null);
   };
@@ -82,44 +101,33 @@ export default function HomePage() {
     });
   };
 
-  // Handler pour changer la date de début
-  const handleStartDateChange = (value: string) => {
-    let endDate = newTask.endDate;
-
-    // Si la date de fin existe et devient < date de début, on l'aligne sur la date de début
-    if (endDate && endDate < value) {
-      endDate = value;
+  // Calendar handlers
+  const handleStartDateCalendar = (date: Date | null) => {
+    const startDateStr = toYMD(date || undefined);
+    let endDateStr = newTask.endDate;
+    if (startDateStr && endDateStr && endDateStr < startDateStr) {
+      endDateStr = startDateStr;
     }
-
-    const duration = computeDurationDays(value, endDate);
-
+    const duration = computeDurationDays(startDateStr, endDateStr);
     setNewTask(prev => ({
       ...prev,
-      startDate: value,
-      endDate,
+      startDate: startDateStr,
+      endDate: endDateStr,
       duration,
     }));
   };
 
-  // Handler pour changer la date de fin
-  const handleEndDateChange = (value: string) => {
-    const startDate = newTask.startDate;
-
-    // Si pas de date de début, on fixe start = today
-    const effectiveStart = startDate || today;
-
-    // Si la fin est avant le début, on force fin = début
-    let endDate = value;
-    if (endDate < effectiveStart) {
-      endDate = effectiveStart;
+  const handleEndDateCalendar = (date: Date | null) => {
+    const startDateStr = newTask.startDate || today;
+    let endDateStr = toYMD(date || undefined) || startDateStr;
+    if (endDateStr < startDateStr) {
+      endDateStr = startDateStr;
     }
-
-    const duration = computeDurationDays(effectiveStart, endDate);
-
+    const duration = computeDurationDays(startDateStr, endDateStr);
     setNewTask(prev => ({
       ...prev,
-      startDate: startDate || effectiveStart,
-      endDate,
+      startDate: newTask.startDate || startDateStr,
+      endDate: endDateStr,
       duration,
     }));
   };
@@ -143,27 +151,26 @@ export default function HomePage() {
           onChange={e => setNewTask({ ...newTask, description: e.target.value })}
         />
 
-        {/* Date de début : calendrier + dates passées bloquées */}
-        <input
+        {/* Date de début via calendrier */}
+        <DatePicker
+          selected={fromYMD(newTask.startDate) || undefined}
+          onChange={handleStartDateCalendar}
+          minDate={todayDate}
+          placeholderText="Date de début"
           className="border p-2"
-          type="date"
-          placeholder="Date de debut"
-          value={newTask.startDate || ''}
-          min={today}
-          onChange={e => handleStartDateChange(e.target.value)}
+          dateFormat="dd-MM-yyyy"
         />
 
-        {/* Date de fin : calendrier + ne peut pas être avant la date de début (ou aujourd'hui) */}
-        <input
+        {/* Date de fin via calendrier */}
+        <DatePicker
+          selected={fromYMD(newTask.endDate) || undefined}
+          onChange={handleEndDateCalendar}
+          minDate={fromYMD(newTask.startDate) || todayDate}
+          placeholderText="Date de fin"
           className="border p-2"
-          type="date"
-          placeholder="Date de fin"
-          value={newTask.endDate || ''}
-          min={newTask.startDate || today}
-          onChange={e => handleEndDateChange(e.target.value)}
+          dateFormat="dd-MM-yyyy"
         />
 
-        {/* Durée calculée automatiquement en jours, affichée en lecture seule */}
         <input
           className="border p-2"
           type="number"
@@ -224,7 +231,7 @@ export default function HomePage() {
               </p>
               {task.startDate && task.endDate && (
                 <p className="text-xs text-gray-500">
-                  Du {task.startDate} au {task.endDate}
+                  Du {formatDMY(task.startDate)} au {formatDMY(task.endDate)}
                 </p>
               )}
             </div>

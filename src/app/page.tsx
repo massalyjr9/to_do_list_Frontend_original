@@ -167,7 +167,7 @@ export default function HomePage() {
         <input
           className="border p-2"
           type="number"
-          placeholder="Durée (jours)"
+          placeholder="Duree (jours)"
           value={newTask.duration ?? ''}
           readOnly
         />

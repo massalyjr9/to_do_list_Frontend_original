@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📝 Todo List Frontend — Next.js & TypeScript
 
-## Getting Started
+## Présentation
 
-First, run the development server:
+Cette application constitue la partie frontend du projet **Todo List**, développée avec **Next.js**, **TypeScript** et **Tailwind CSS**.  
+Elle permet de créer, modifier, afficher et supprimer des tâches, en communiquant avec une API backend basée sur **NestJS**.
+
+L’interface propose un formulaire complet de gestion des tâches, une mise à jour dynamique du statut, un sélecteur de dates avec contrôle des valeurs, ainsi qu’un calcul automatique de la durée entre deux dates.
+
+---
+
+## Fonctionnalités
+
+Création d’une tâche comprenant les champs suivants :  
+- Titre  
+- Description  
+- Responsable  
+- Date de début (sélection via calendrier, dates passées interdites)  
+- Date de fin (toujours supérieure ou égale à la date de début)  
+- Durée totale en jours (calcul automatique)  
+- Statut : *to do*, *in progress*, *done*
+
+Modification d’une tâche existante  
+Suppression d’une tâche  
+Mise à jour du statut directement dans la liste  
+Interface responsive  
+Communication complète avec l’API backend  
+
+---
+
+## Technologies utilisées
+
+- Next.js 16  
+- React 18  
+- TypeScript  
+- Tailwind CSS  
+- Fetch API  
+- Variables d’environnement  
+
+---
+
+## Installation
+
+### 1. Cloner le projet
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/massalyjr9/to_do_list_frontend.git
+cd todo-frontend
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Installer les dépendances
+```bash
+    npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configuration des variables d’environnement
+Créer un fichier nommé :
+```bash
+    .env.local
+```
+Ajouter la ligne suivante:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+    NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+Modifier l’URL en fonction de l’adresse du backend en production.
 
-## Learn More
+### 3. Démarrer le projet
+```bash
+   npm run dev
+```
+Le frontend sera accessible à l’adresse :
+http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+Structure du projet 
+```bash
+src/
+  app/
+    page.tsx               Page principale
+  lib/
+    api.ts                 Fonctions d’appel à l’API backend
+  types/
+    task.ts                Types et interfaces TypeScript
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+Connexion au backend
+```bash
+    Toutes les requêtes passent par :
+    NEXT_PUBLIC_API_URL
+```
+Routes consommées auprès du backend NestJS :
+```bash 
+    GET    /tasks
+    POST   /tasks
+    PUT    /tasks/:id
+    DELETE /tasks/:id
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+Améliorations possibles: 
+Moteur de recherche / filtres  
+Statistiques globales  
+Authentification utilisateur  
+Pagination ou infinite scroll  
+Mode sombre  
+Tests front automatisés
 
-## Deploy on Vercel
+Auteur  
+Idrissa Massaly  
+Développeur Fullstack — Next.js, React, TypeScript, NestJs  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Déploiement sur Vercel
+L’option la plus simple pour déployer ce projet est d’utiliser Vercel.  
+```bash 
+Lien : https://vercel.com
+Documentation : https://nextjs.org/docs/app/building-your-application/deploying
+```
